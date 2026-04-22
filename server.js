@@ -29,7 +29,9 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 }));
-app.use(express.json());
+// Increased to 10MB — profile pics are base64 encoded (~1-3MB each)
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // ================= STATIC =================
 // (images are stored as base64 in MongoDB — no local uploads folder needed)
