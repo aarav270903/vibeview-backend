@@ -26,6 +26,8 @@ const app = express();
 // ================= MIDDLEWARE =================
 app.use(cors({
   origin: "*",
+  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 }));
 app.use(express.json());
 
