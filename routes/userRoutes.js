@@ -115,8 +115,9 @@ router.put("/update/:username", async (req, res) => {
 
     const updateData = { ...req.body };
 
-    // Keep existing pic if none provided
-    if (!updateData.profilePic && updateData.profilePic !== "") {
+    // Only fall back to existing pic if the field was NOT sent at all.
+    // An explicit "" means "remove the pic" — that should be honoured.
+    if (updateData.profilePic === undefined) {
       updateData.profilePic = existingUser.profilePic;
     }
 
