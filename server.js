@@ -32,7 +32,7 @@ app.use(cors({
 app.use(express.json());
 
 // ================= STATIC =================
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// (images are stored as base64 in MongoDB — no local uploads folder needed)
 
 // ================= ROUTES =================
 const postRoutes = require("./routes/postRoutes");

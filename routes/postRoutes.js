@@ -3,14 +3,14 @@ const router  = express.Router();
 const Post    = require("../models/Post");
 const multer  = require("multer");
 
-// ── Upload setup ──────────────────────────────────────────
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
-  filename:    (req, file, cb) => cb(null, Date.now() + "-" + file.originalname)
+// ── Upload setup (memory storage — works on Render/any host) ──
+// No "uploads/" folder needed. Image stored as base64 in MongoDB.
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB max
 });
-const upload = multer({ storage });
 
-// ── CREATE POST (no auth header needed — userId from body) ──
+// ── CREATE POST ───────────────────────────────────────────────
 router.post("/create", upload.single("image"), async (req, res) => {
   try {
     const { userId, username, caption } = req.body;
@@ -23,11 +23,14 @@ router.post("/create", upload.single("image"), async (req, res) => {
       return res.status(400).json({ message: "Image required ❌" });
     }
 
+    // Convert buffer to base64 data URL
+    const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+
     const newPost = new Post({
       userId,
       username,
       caption,
-      image: req.file.filename
+      image: base64Image   // store full data URL
     });
 
     await newPost.save();
@@ -38,7 +41,7 @@ router.post("/create", upload.single("image"), async (req, res) => {
   }
 });
 
-// ── GET ALL POSTS ─────────────────────────────────────────
+// ── GET ALL POSTS ─────────────────────────────────────────────
 router.get("/", async (req, res) => {
   try {
     const posts = await Post.find().sort({ createdAt: -1 });
@@ -48,7 +51,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// ── LIKE / UNLIKE POST ────────────────────────────────────
+// ── LIKE / UNLIKE POST ────────────────────────────────────────
 router.post("/like/:id", async (req, res) => {
   try {
     const { userId } = req.body;
@@ -72,7 +75,7 @@ router.post("/like/:id", async (req, res) => {
   }
 });
 
-// ── DELETE POST ───────────────────────────────────────────
+// ── DELETE POST ───────────────────────────────────────────────
 router.delete("/:id", async (req, res) => {
   try {
     const { userId } = req.body;
